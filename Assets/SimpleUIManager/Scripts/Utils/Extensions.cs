@@ -20,5 +20,10 @@ namespace SUIM.Utils
         {
             signalBus.Fire(new OnHideGivenAdditiveView { ViewToHide = type });
         }
+
+        public static void FireOnShowPreviousView(this SignalBus signalBus)
+        {
+            signalBus.Fire<OnShowPreviousView>();
+        }
     }
 }

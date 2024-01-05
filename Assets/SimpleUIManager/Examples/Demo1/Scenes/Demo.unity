@@ -352,6 +352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d6cf5c4dd714a498688dbf2afb0c1f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 1182494741}
   _childViews: []
 --- !u!225 &116199626
@@ -1878,6 +1879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff423b9bff794f2489c131ca49ea67c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 781234522}
   _childViews: []
   _openBViewButton: {fileID: 1146931385}
@@ -1962,6 +1964,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79ce59081ce34121b22ff80cdf9e232f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 0}
   _childViews:
   - {fileID: 767717272}
@@ -2246,6 +2249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0f0abbe1114bddb5b1fb736c62f10b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 781234522}
   _childViews: []
   _openCViewButton: {fileID: 1477664416}
@@ -2517,6 +2521,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24730d8906fd42a69710c60756c476f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 781234522}
   _childViews: []
   _openBViewButton: {fileID: 874384579}
@@ -3047,6 +3052,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe55a28db22648dd988970c65a05175d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 781234522}
   _childViews:
   - {fileID: 1478174320}
@@ -3579,6 +3585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57445384be2049ce92a3f9b2ef87963a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _includeInViewsHistory: 1
   _parentView: {fileID: 1182494741}
   _childViews: []
 --- !u!225 &1478174321
