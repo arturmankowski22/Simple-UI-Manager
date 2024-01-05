@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SUIM.Animation;
 using SUIM.Components.Views;
+using SUIM.Config;
 using SUIM.Signals;
 using SUIM.Utils;
 using UnityEngine;
@@ -42,6 +43,10 @@ namespace SUIM
         public sealed class OnHideAllAdditiveViews
         {
         }
+        
+        public sealed class OnShowPreviousView
+        {
+        }
     }
 
     [ExecuteInEditMode]
@@ -50,11 +55,13 @@ namespace SUIM
     {
         [SerializeField] private ViewBase _startView;
         [SerializeField] [HideInInspector] private LCATree _lcaTree;
+        
         private readonly List<ViewBase> _currentAdditiveViews = new();
-
+        private CyclicOverwriteStack<ViewBase> _viewsHistory; 
         private ViewBase _currentView;
         private ViewBase _previousView;
         private SignalBus _signalBus;
+        private ViewsHistoryConfig _viewsHistoryConfig;
 
         [Inject] private IViewAnimationInvoker _viewAnimationInvoker;
 
@@ -63,19 +70,27 @@ namespace SUIM
             if (Application.isEditor && !Application.isPlaying)
                 return;
 
+            _viewsHistoryConfig = SUIMConfigProvider.ViewsHistoryConfig;
+            
+            if (_viewsHistoryConfig.EnableViewsHistory)
+                _viewsHistory = new CyclicOverwriteStack<ViewBase>(_viewsHistoryConfig.ViewsHistoryCapacity);
+            
             foreach (var view in _lcaTree.AvailableViews)
-            {
-                if (view.TryGetComponent<RootView>(out _))
-                    continue;
-
-                var rect = view.GetComponent<RectTransform>();
-                rect.offsetMin = rect.offsetMax = Vector2.zero;
-                view.CanvasGroup.blocksRaycasts = true;
-                view.Init();
-                view.gameObject.SetActive(false);
-            }
+                InitializeView(view);
         }
+        
+        private void InitializeView(ViewBase view)
+        {
+            if (view.TryGetComponent<RootView>(out _))
+                return;
 
+            var rect = view.GetComponent<RectTransform>();
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            view.CanvasGroup.blocksRaycasts = true;
+            view.Init();
+            view.gameObject.SetActive(false);
+        }
+        
         private void Start()
         {
             if ((Application.isEditor && !Application.isPlaying) || _lcaTree.AvailableViews.Count == 0)
@@ -114,6 +129,7 @@ namespace SUIM
             _signalBus.Subscribe<OnHideLastAdditiveView>(HandleHideLastAddictiveView);
             _signalBus.Subscribe<OnHideGivenAdditiveView>(HandleHideGivenAdditiveView);
             _signalBus.Subscribe<OnHideAllAdditiveViews>(HandleHideAllAdditiveViews);
+            _signalBus.Subscribe<OnShowPreviousView>(HandleShowPreviousView);
         }
 
         private void HandleChangeView(OnChangeView data)
@@ -125,13 +141,16 @@ namespace SUIM
             _previousView = _currentView;
             _currentView = Helpers.GetDeepestChild(viewToShow);
 
-            if (_currentView == _previousView)
+            if (_previousView == _currentView)
                 return;
+            
+            if (_viewsHistoryConfig.EnableViewsHistory && _previousView.IncludeInViewsHistory)
+                _viewsHistory.Push(_previousView);
 
             ShowView(_currentView);
             HideView(_previousView);
         }
-
+        
         private void HandleShowViewAdditively(OnShowViewAdditively data)
         {
             var viewToShow = GetView(data.ViewToShow);
@@ -162,7 +181,6 @@ namespace SUIM
                 Logger.LogWarning($"Couldn't find a view=[{data.ViewToHide.Name}] type.");
                 return;
             }
-
             HideGivenAdditiveView(viewToHide);
         }
 
@@ -171,6 +189,31 @@ namespace SUIM
             HideAllAdditiveViews();
         }
 
+        private void HandleShowPreviousView()
+        {
+            if (!_viewsHistoryConfig.EnableViewsHistory)
+            {
+                Logger.LogWarning("The views history feature is currently disabled. To enable it, navigate to SUIMConfig and select \"Enable Views History\" to true");
+                return;
+            }
+            
+            if (_viewsHistory.IsEmpty) 
+                return;
+
+            var newCurrentView = _viewsHistory.Pop();
+            
+            ShowView(newCurrentView);
+            HideView(_currentView);
+            
+            _currentView = newCurrentView;
+            _previousView = _viewsHistory.Peek();
+        }
+
+        /// <summary>
+        /// Shows given view
+        /// <para><b>Important:</b> Call <see cref="HideView"/> method first before calling this method</para>
+        /// </summary>
+        /// <param name="view">View to show</param>
         private void ShowView(ViewBase view)
         {
             if (view == null)
@@ -182,28 +225,36 @@ namespace SUIM
             view.CanvasGroup.blocksRaycasts = true;
             view.OnShowStarted();
 
-            var currentView = view;
+            var viewToActivate = view;
             var commonParent = _lcaTree.FindCommonParent(_previousView, _currentView);
-
+            
             if (commonParent != null)
-                while (currentView.ParentView != commonParent || currentView.ParentView == null)
+            {
+                while (viewToActivate.ParentView != commonParent || viewToActivate.ParentView == null)
                 {
-                    currentView.RectTransform.anchoredPosition = Vector2.zero;
-                    currentView = currentView.ParentView;
-                    currentView.gameObject.SetActive(true);
+                    viewToActivate.RectTransform.anchoredPosition = Vector2.zero;
+                    if (viewToActivate.ParentView is RootView)
+                        break;
+                    viewToActivate = viewToActivate.ParentView;
+                    viewToActivate.gameObject.SetActive(true);
                 }
+            }
 
             view.ResetView();
             view.gameObject.SetActive(true);
-            if (!currentView.UseShowAnimation)
+            if (!viewToActivate.UseShowAnimation)
             {
                 view.OnShowFinished();
                 return;
             }
 
-            _viewAnimationInvoker.Show(currentView, view.OnShowFinished);
+            _viewAnimationInvoker.Show(viewToActivate, view.OnShowFinished);
         }
 
+        /// <summary>
+        /// Hides given view
+        /// </summary>
+        /// <param name="view">View to hide</param>
         private void HideView(ViewBase view)
         {
             if (view == null)
@@ -215,23 +266,29 @@ namespace SUIM
             view.CanvasGroup.blocksRaycasts = false;
             view.OnHideStarted();
 
-            var currentView = view;
+            var viewToDeactivate = view;
             var commonParent = _lcaTree.FindCommonParent(_previousView, _currentView);
 
             if (commonParent != null)
-                while (currentView.ParentView != commonParent || currentView.ParentView == null)
-                    currentView = currentView.ParentView;
+            {
+                while (viewToDeactivate.ParentView != commonParent || viewToDeactivate.ParentView == null)
+                {
+                    if (viewToDeactivate.ParentView is RootView)
+                        break;
+                    viewToDeactivate = viewToDeactivate.ParentView;
+                }
+            }
 
-            if (!currentView.UseHideAnimation)
+            if (!viewToDeactivate.UseHideAnimation)
             {
                 view.OnHideFinished();
                 view.gameObject.SetActive(false);
                 return;
             }
 
-            _viewAnimationInvoker.Hide(currentView, () =>
+            _viewAnimationInvoker.Hide(viewToDeactivate, () =>
             {
-                currentView.gameObject.SetActive(false);
+                viewToDeactivate.gameObject.SetActive(false);
                 view.gameObject.SetActive(false);
                 view.OnHideFinished();
             });
@@ -299,7 +356,7 @@ namespace SUIM
 
         private void BuildViewsTreeAutomatically()
         {
-            if (Application.isPlaying || !SUIMConfigProvider.Config.EnableAutoRebuildViewsTree)
+            if (Application.isPlaying || !SUIMConfigProvider.GeneralConfig.EnableAutoRebuildViewsTree)
                 return;
             _lcaTree = LCATreeBuilder.Build(this);
         }

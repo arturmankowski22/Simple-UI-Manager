@@ -10,17 +10,15 @@ namespace SUIM.Components.Views
     [RequireComponent(typeof(CanvasGroup))]
     public abstract class ViewBase : MonoBehaviour
     {
-        [SerializeField] [HideInInspector] private ViewBase _parentView;
-        [SerializeField] [HideInInspector] private List<ViewBase> _childViews = new();
-
-        private CanvasGroup _canvasGroup;
-        private RectTransform _rectTransform;
-
-        [Inject] protected SignalBus _signalBus;
         public bool UseShowAnimation => ViewAnimationModule is { ShowAnimBehaviour: { UseAnimation: true } };
         public bool UseHideAnimation => ViewAnimationModule is { HideAnimBehaviour: { UseAnimation: true } };
+        /// <summary>
+        /// Module responsible for animations. By default, no animation is configured (interpreted by the system as instant animation)
+        /// </summary>
         public virtual ViewAnimationModule ViewAnimationModule { get; }
-
+        public ViewBase ParentView => _parentView;
+        public List<ViewBase> ChildViews => _childViews;
+        public bool IncludeInViewsHistory => _includeInViewsHistory;
         public CanvasGroup CanvasGroup
         {
             get
@@ -30,7 +28,6 @@ namespace SUIM.Components.Views
                 return _canvasGroup;
             }
         }
-
         public RectTransform RectTransform
         {
             get
@@ -40,9 +37,15 @@ namespace SUIM.Components.Views
                 return _rectTransform;
             }
         }
+        
+        [SerializeField] private bool _includeInViewsHistory = true;
+        [SerializeField, HideInInspector] private ViewBase _parentView;
+        [SerializeField, HideInInspector] private List<ViewBase> _childViews = new();
 
-        public ViewBase ParentView => _parentView;
-        public List<ViewBase> ChildViews => _childViews;
+        [Inject] protected SignalBus _signalBus;
+        
+        private CanvasGroup _canvasGroup;
+        private RectTransform _rectTransform;
 
         #region Editor Methods
 

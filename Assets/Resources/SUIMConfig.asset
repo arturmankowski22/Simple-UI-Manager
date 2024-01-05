@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d737241cf2e1426caed406941482f66b, type: 3}
   m_Name: SUIMConfig
   m_EditorClassIdentifier: 
-  _enableDebug: 1
-  _enableAutoRebuildViewsTree: 1
+  _generalConfig:
+    _enableDebug: 1
+    _enableAutoRebuildViewsTree: 1
+  _viewsHistoryConfig:
+    _enableViewsHistory: 1
+    _viewsHistoryCapacity: 10

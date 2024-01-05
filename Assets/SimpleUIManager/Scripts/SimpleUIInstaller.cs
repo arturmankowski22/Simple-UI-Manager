@@ -22,6 +22,7 @@ namespace SUIM
             Container.DeclareSignal<OnHideLastAdditiveView>();
             Container.DeclareSignal<OnHideGivenAdditiveView>();
             Container.DeclareSignal<OnHideAllAdditiveViews>();
+            Container.DeclareSignal<OnShowPreviousView>();
         }
     }
 }
