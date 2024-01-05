@@ -18,7 +18,6 @@ namespace SUIM.Components.Views
         public virtual ViewAnimationModule ViewAnimationModule { get; }
         public ViewBase ParentView => _parentView;
         public List<ViewBase> ChildViews => _childViews;
-        public bool IncludeInViewsHistory => _includeInViewsHistory;
         public CanvasGroup CanvasGroup
         {
             get
@@ -38,7 +37,6 @@ namespace SUIM.Components.Views
             }
         }
         
-        [SerializeField] private bool _includeInViewsHistory = true;
         [SerializeField, HideInInspector] private ViewBase _parentView;
         [SerializeField, HideInInspector] private List<ViewBase> _childViews = new();
 

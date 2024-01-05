@@ -144,7 +144,7 @@ namespace SUIM
             if (_previousView == _currentView)
                 return;
             
-            if (_viewsHistoryConfig.EnableViewsHistory && _previousView.IncludeInViewsHistory)
+            if (_viewsHistoryConfig.EnableViewsHistory)
                 _viewsHistory.Push(_previousView);
 
             ShowView(_currentView);
