@@ -19,7 +19,7 @@ namespace SUIM.Config
                 if (_config != null)
                     return _config;
 
-                Debug.LogWarning("SUIMConfig not found! Creating a new one in the \"Assets/Resources\" path...");
+                Debug.LogWarning($"{Constants.SUIMPrefix} SUIMConfig not found! Creating a new one in the \"Assets/Resources\" path...");
                 _config = ScriptableObject.CreateInstance<SUIMConfig>();
 #if UNITY_EDITOR
                 if (!AssetDatabase.IsValidFolder("Assets/Resources"))

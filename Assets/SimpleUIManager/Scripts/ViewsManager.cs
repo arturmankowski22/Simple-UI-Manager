@@ -193,7 +193,7 @@ namespace SUIM
         {
             if (!_viewsHistoryConfig.EnableViewsHistory)
             {
-                Logger.LogWarning("The views history feature is currently disabled. To enable it, navigate to SUIMConfig and select \"Enable Views History\" to true");
+                Logger.LogWarning($"The views history feature is currently disabled. To enable it, navigate to SUIMConfig and select \"Enable Views History\" to true");
                 return;
             }
             
