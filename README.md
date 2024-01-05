@@ -1,4 +1,4 @@
-# Simple UI Toolkit [SUIM]
+# Simple UI Toolkit [SUIT]
 ![GitHub](https://img.shields.io/github/license/svermeulen/Extenject)
 
 # Preview
